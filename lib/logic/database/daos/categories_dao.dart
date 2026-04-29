@@ -26,7 +26,10 @@ class CategoriesDao extends DatabaseAccessor<AppDatabase> with _$CategoriesDaoMi
         transactions, 
         // filter all transactions with category id and account id 
         transactions.accountOwnerId.equals(accountOwnerId) &
-        transactions.categoryId.equalsExp(categories.id) 
+        transactions.categoryId.equalsExp(categories.id) &
+        // date range (from start to end date)
+        transactions.dateAndTime.isBiggerOrEqualValue(startDate) &
+        transactions.dateAndTime.isSmallerOrEqualValue(endDate),
       )
     ])
       ..where(categories.isIncome.equals(isIncome)) // true = income, false = expense

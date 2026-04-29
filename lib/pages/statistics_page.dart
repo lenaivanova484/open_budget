@@ -4,9 +4,11 @@ import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/format_number.dart';
 import 'package:open_budget/widgets/custom_header.dart';
 import 'package:open_budget/widgets/custom_header_title.dart';
+import 'package:open_budget/widgets/custom_icon.dart';
 import 'package:open_budget/widgets/custom_icon_button.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
+import 'package:open_budget/widgets/date_time_picker.dart';
 import 'package:open_budget/widgets/empty_list_placeholder.dart';
 import 'package:open_budget/widgets/section_header.dart';
 
@@ -27,6 +29,10 @@ class StatisticsPage extends StatefulWidget {
 }
 
 class _StatisticsPageState extends State<StatisticsPage> {
+  String _periodButtonLabel = 'This month';
+  DateTime _startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  DateTime _endDate = DateTime.now();
+
   // list of categories 
   Widget _buildCategoriesRankingList({
     required int accountOwnerId,
@@ -36,8 +42,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
       stream: widget.db.categoriesDao.sortCategoriesByTotalAmount(
         accountOwnerId: accountOwnerId,
         isIncome: isIncome,
-        startDate: DateTime(2000),
-        endDate: DateTime(2000),
+        startDate: _startDate,
+        endDate: _endDate,
       ),
       builder: (context, snapshot) {
         final sortedCategories = snapshot.data ?? [];
@@ -200,6 +206,117 @@ class _StatisticsPageState extends State<StatisticsPage> {
     );
   }
 
+  // periods for statistics
+  void _showPeriodsSheet() {
+    showCustomModalBottomSheet(
+      context: context, 
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      child: Wrap(
+        children: [
+          CustomHeader(
+            children: [
+              CustomIconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close)
+              ),
+              const CustomHeaderTitle(
+                title: 'Period'
+              ),
+              const SizedBox(width: 48),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Column(
+              spacing: 5,
+              children: [
+                // this month
+                CustomListTile(
+                  leading: const CustomIcon(icon: Icons.calendar_today),
+                  tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                  title: 'This month',
+                  onTap: () {
+                    final now = DateTime.now();
+                    Navigator.pop(context);
+                    setState(() {
+                      _periodButtonLabel = 'This month';
+                      _startDate = DateTime(now.year, now.month, 1);
+                      _endDate = DateTime(now.year, now.month + 1, 0);
+                    });
+                  },
+                ),
+                // previous month
+                CustomListTile(
+                  leading: const CustomIcon(icon: Icons.calendar_month),
+                  tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                  title: 'Previous month',
+                  onTap: () {
+                    final now = DateTime.now();
+                    Navigator.pop(context);
+                    setState(() {
+                      _periodButtonLabel = 'Previous month';
+                      _startDate = DateTime(now.year, now.month - 1, 1);
+                      _endDate = DateTime(now.year, now.month, 0);
+                    });
+                  },
+                ),
+                // all time
+                CustomListTile(
+                  leading: const CustomIcon(icon: Icons.calendar_view_week_outlined),
+                  tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                  title: 'All time',
+                  onTap: () {
+                    Navigator.pop(context);
+                    setState(() {   
+                      _periodButtonLabel = 'All time';
+                      _startDate = DateTime(2000);
+                      _endDate = DateTime.now();
+                    });
+                  },
+                ),
+                // custom period
+                CustomListTile(
+                  leading: const CustomIcon(icon: Icons.edit),
+                  tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                  title: 'Custom period',
+                  trailing: const CustomIcon(icon: Icons.chevron_right),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final dateRange = await pickDateRange(context: context);
+
+                    if(dateRange != null) {
+                      setState(() {
+                        // label in period button
+                        // format dd.mm.yyyy - dd.mm.yyyy
+                        _periodButtonLabel = 
+                          '${dateRange.start.day.toString().padLeft(2, '0')}.'
+                          '${dateRange.start.month.toString().padLeft(2, '0')}.'
+                          '${dateRange.start.year} - '
+                          '${dateRange.end.day.toString().padLeft(2, '0')}.'
+                          '${dateRange.end.month.toString().padLeft(2, '0')}.'
+                          '${dateRange.end.year}';
+                        
+                        _startDate = dateRange.start;
+                        _endDate = DateTime(
+                          dateRange.end.year,
+                          dateRange.end.month,
+                          dateRange.end.day,
+                          23,
+                          59,
+                          59,
+                        );
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -213,7 +330,22 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.close)
                 ), 
-                const CustomHeaderTitle(title: 'Statistics'),
+                FilledButton(
+                  onPressed: () => _showPeriodsSheet(),
+                  child: Row(
+                    spacing: 5,
+                    children: [
+                      Text(
+                        _periodButtonLabel, 
+                        style: const TextStyle(color: Colors.white)
+                      ),
+                      Icon(
+                        Icons.arrow_drop_down,
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(width: 48),
               ],
             ),
