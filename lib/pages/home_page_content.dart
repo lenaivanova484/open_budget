@@ -64,6 +64,8 @@ class _HomePageContentState extends State<HomePageContent> {
   // category is the value
   Map<int, Category> _categoriesById = {};
 
+  double netBalance = 0.0;
+
   @override
   void initState() {
     super.initState();
@@ -780,7 +782,7 @@ class _HomePageContentState extends State<HomePageContent> {
                             ),
                             // summary 
                             const SectionHeader(
-                              title: 'Summary'
+                              title: 'This month'
                             ),
                             const SizedBox(height: 10),
                             Material(
@@ -789,7 +791,9 @@ class _HomePageContentState extends State<HomePageContent> {
                               child: Column(
                                 children: [
                                   StreamBuilder(
-                                    stream: widget.db.transactionsDao.watchTotalIncome(account.id), 
+                                    stream: widget.db.transactionsDao.watchTotalIncome(
+                                      accountOwnerId: account.id,
+                                    ), 
                                     builder: (context, snapshot) {
                                       final income = snapshot.data ?? 0;
                                       final formattedIncome = formatNumber(income);
@@ -812,8 +816,11 @@ class _HomePageContentState extends State<HomePageContent> {
                                     height: 1,
                                     color: Theme.of(context).colorScheme.surface,
                                   ),
+                                  // total expenses
                                   StreamBuilder(
-                                    stream: widget.db.transactionsDao.watchTotalExpense(account.id), 
+                                    stream: widget.db.transactionsDao.watchTotalExpense(
+                                      accountOwnerId: account.id,
+                                    ), 
                                     builder: (context, snapshot) {
                                       final expense = snapshot.data ?? 0;
                                       final formattedExpense = formatNumber(expense);

@@ -186,22 +186,36 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsD
   }
 
   // watch total income
-  Stream<double> watchTotalIncome(int accountOwnerId) {
+  Stream<double> watchTotalIncome({
+    required int accountOwnerId,
+  }) {
+    final DateTime startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
+    final DateTime endDate = DateTime.now();
+
     return (select(transactions)
       ..where((t) => t.transactionType.equals(2).not()) // do not include transfers
       ..where((t) => t.amount.isBiggerThanValue(0))
       ..where((t) => t.accountOwnerId.equals(accountOwnerId))
+      ..where((t) => t.dateAndTime.isBiggerOrEqualValue(startDate)) // start date
+      ..where((t) => t.dateAndTime.isSmallerOrEqualValue(endDate)) // end date
     ).watch()
       .map((rows) => rows.fold(0, (sum, t) => sum + t.amount)
     );
   }
 
   // watch total expense
-  Stream<double> watchTotalExpense(int accountOwnerId) {
+  Stream<double> watchTotalExpense({
+    required int accountOwnerId,
+  }) {
+    final DateTime startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
+    final DateTime endDate = DateTime.now();
+
     return (select(transactions)
       ..where((t) => t.transactionType.equals(2).not()) // do not include transfers
       ..where((t) => t.amount.isSmallerThanValue(0))
       ..where((t) => t.accountOwnerId.equals(accountOwnerId))
+      ..where((t) => t.dateAndTime.isBiggerOrEqualValue(startDate)) // start date
+      ..where((t) => t.dateAndTime.isSmallerOrEqualValue(endDate)) // end date
     ).watch()
       .map((rows) => rows.fold(0, (sum, t) => sum + t.amount)
     );
