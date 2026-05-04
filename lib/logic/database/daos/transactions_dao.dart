@@ -188,9 +188,11 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsD
   // watch total income
   Stream<double> watchTotalIncome({
     required int accountOwnerId,
+    DateTime? customStartDate,
+    DateTime? customEndDate,
   }) {
-    final DateTime startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
-    final DateTime endDate = DateTime.now();
+    final DateTime startDate = customStartDate ?? DateTime(DateTime.now().year, DateTime.now().month, 1);
+    final DateTime endDate = customEndDate ?? DateTime.now();
 
     return (select(transactions)
       ..where((t) => t.transactionType.equals(2).not()) // do not include transfers
@@ -206,9 +208,11 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsD
   // watch total expense
   Stream<double> watchTotalExpense({
     required int accountOwnerId,
+    DateTime? customStartDate,
+    DateTime? customEndDate,
   }) {
-    final DateTime startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
-    final DateTime endDate = DateTime.now();
+    final DateTime startDate = customStartDate ?? DateTime(DateTime.now().year, DateTime.now().month, 1);
+    final DateTime endDate = customEndDate ?? DateTime.now();
 
     return (select(transactions)
       ..where((t) => t.transactionType.equals(2).not()) // do not include transfers
