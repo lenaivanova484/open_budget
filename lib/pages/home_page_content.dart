@@ -64,8 +64,6 @@ class _HomePageContentState extends State<HomePageContent> {
   // category is the value
   Map<int, Category> _categoriesById = {};
 
-  double netBalance = 0.0;
-
   @override
   void initState() {
     super.initState();
@@ -790,6 +788,42 @@ class _HomePageContentState extends State<HomePageContent> {
                               borderRadius: BorderRadius.circular(15),
                               child: Column(
                                 children: [
+                                  // net 
+                                  StreamBuilder(
+                                    stream: widget.db.transactionsDao.watchTotalIncome(accountOwnerId: account.id), 
+                                    builder: (context, incomeSnapshot) {
+                                      final income = incomeSnapshot.data ?? 0;
+
+                                      return StreamBuilder(
+                                        stream: widget.db.transactionsDao.watchTotalExpense(accountOwnerId: account.id), 
+                                        builder: (context, expenseSnapshot) {
+                                          final expense = (expenseSnapshot.data ?? 0).abs();
+
+                                          final net = income - expense;
+                                          final formattedNet = formatNumber(net);
+                                          final isPositive = net > 0 ? true : false;
+                                          
+                                          return CustomListTile(
+                                            tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                                            leading: const CustomIcon(icon: Icons.bar_chart),
+                                            title: 'Net',
+                                            trailing: Text(
+                                              '$formattedNet ${accountCurrency.symbol}',
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                color: isPositive ? Colors.green : Theme.of(context).colorScheme.onPrimary
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      );
+                                    }
+                                  ),
+                                  Divider(
+                                    height: 1,
+                                    color: Theme.of(context).colorScheme.surface,
+                                  ),
+                                  // total incomes
                                   StreamBuilder(
                                     stream: widget.db.transactionsDao.watchTotalIncome(
                                       accountOwnerId: account.id,
@@ -804,17 +838,13 @@ class _HomePageContentState extends State<HomePageContent> {
                                         title: 'Income',
                                         trailing: Text(
                                           '+$formattedIncome ${accountCurrency.symbol}',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 15,
-                                            color: Colors.green
+                                            color: income > 0 ? Colors.green : Theme.of(context).colorScheme.onPrimary
                                           ),
                                         ),
                                       );
                                     }
-                                  ),
-                                  Divider(
-                                    height: 1,
-                                    color: Theme.of(context).colorScheme.surface,
                                   ),
                                   // total expenses
                                   StreamBuilder(
