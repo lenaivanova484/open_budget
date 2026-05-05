@@ -10,7 +10,7 @@ Open Budget is open-source, cross-platform budgeting application
 # Features
 
 ### Accounts
-- Manage multiple accounts 
+- Manage multiple accounts  
 - Set currency and icon for each account
 - Set initial balance
 - Track separate statistics per account
